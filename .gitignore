@@ -1,0 +1,4 @@
+qa/
+source-docs/
+build_documents.py
+.DS_Store
