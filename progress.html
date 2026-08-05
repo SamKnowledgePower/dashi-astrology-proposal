@@ -4,7 +4,8 @@
 (async()=>{
 let project={updated:"2026-08-05",currentMonth:0,status:"提案階段｜尚未啟動",counts:{shorts:0,posts:0,seo:0,youtube:0,podcast:0,course:0},weekly:{done:["專案尚未啟動"],wait:["確認合作與正式啟動日"],next:["簽署契約與安排啟動訪談","建立社群與名單數據基線"]},tasks:{}};
 const cfg=window.PROGRESS_CONFIG||{};
-if(cfg.supabaseUrl&&cfg.supabaseAnonKey){try{const db=supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey);const result=await db.from('progress_projects').select('data').eq('id',cfg.projectId).maybeSingle();if(result.data?.data)project={...project,...result.data.data}}catch(error){console.warn('Using proposal progress fallback',error)}}
+const projectSlug=new URLSearchParams(location.search).get('project')||cfg.projectId;
+if(cfg.supabaseUrl&&cfg.supabaseAnonKey){try{const db=supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey);const result=await db.rpc('get_public_progress',{project_slug:projectSlug});const row=Array.isArray(result.data)?result.data[0]:result.data;if(row?.data)project={...project,...row.data};if(row?.name){document.title=`${row.name}｜執行進度儀表板`;document.querySelector('.eyebrow').textContent=`Sam Knowledge Power × ${row.name}`}}catch(error){console.warn('Using proposal progress fallback',error)}}
 const phases=[
  [1,"啟動與定位假設","品牌訪談、案例盤點、數據基線",["合作啟動會議與年度排程","達達老師專業與品牌訪談","既有案例及高頻問題盤點","競品與市場初步研究"]],
  [2,"內容測試與客群觀察","第一輪主題測試、既有客戶訪談",["內容支柱與測試題目定案","既有客戶訪談第一輪","社群平台與 LINE 基線建立"]],

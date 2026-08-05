@@ -1,6 +1,6 @@
 window.PROGRESS_CONFIG = {
-  supabaseUrl: "",
-  supabaseAnonKey: "",
+  supabaseUrl: "https://nnthlksbshrejlbcycwq.supabase.co",
+  supabaseAnonKey: "sb_publishable_q8QMEzqTYCnetpPCtWJQIA_WdRhPjFx",
   projectId: "dashi-astrology",
-  adminEmail: "samknowledgepower@gmail.com"
+  adminEmail: "blessingstable@gmail.com"
 };
