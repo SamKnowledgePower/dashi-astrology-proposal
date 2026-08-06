@@ -37,21 +37,65 @@ const TEMPLATES={
    ["課程正式上線","SEO 文章第 6 篇","首批學員回饋與 FAQ","全年成果報告","網站、素材與平台帳號交接","第二年營運建議"]
   ],
   recurring:m=>[`短影音第 ${(m-1)*4+1}–${m*4} 支`,`社群文章第 ${(m-1)*4+1}–${m*4} 篇`,`每月共創討論與集中拍攝`,`Google 商家日常維護`,`當月成果與數據檢核`]
+ },
+ "woniu-takara":{
+  hasPrep:true,
+  prepTasks:["素材蒐集","品牌與服務資料盤點","窩牛與 Takara 雙主線初步訪談","現有帳號與權限盤點","年度內容方向與執行流程確認"],
+  phaseNames:["合作啟動與雙主線盤點","內容支柱與拍攝流程","第一季內容檢核","內容庫穩定產出","內容轉譯與素材系統","半年檢核與內部帶訓啟動","內部操作微任務","簡易製作與流程接手","第三季檢核","內容系統文件化","交接測試與缺口補強","年度總結與正式交接"],
+  taskNames:[
+   ["合作啟動會議與年度排程","窩牛品牌與服務訪談","Takara 產品與原廠資料盤點","既有案例與素材整理","第一批選題確認",{name:"當月到場服務",kind:"qtyVisit"},{name:"當月短影音製作",kind:"qtyVideo"},"當月週進度回報"],
+   ["窩牛內容支柱定案","Takara 內容支柱定案","批次拍攝流程建立","送審與發布流程建立","素材命名規則建立",{name:"當月到場服務",kind:"qtyVisit"},{name:"當月短影音製作",kind:"qtyVideo"},"當月週進度回報"],
+   ["第一季內容成果整理","窩牛／Takara 題材比例檢核","高反應主題整理","下一季選題調整","第一次季度檢核",{name:"當月到場服務",kind:"qtyVisit"},{name:"當月短影音製作",kind:"qtyVideo"},"當月週進度回報"],
+   ["第二季選題庫建立","案例型內容製作","工程與空間知識內容製作","Takara 產品教育內容製作",{name:"當月到場服務",kind:"qtyVisit"},{name:"當月短影音製作",kind:"qtyVideo"},"當月週進度回報"],
+   ["客戶常見問題整理","專業語言轉譯","展間與產品素材整理","拍攝素材分類規則",{name:"當月到場服務",kind:"qtyVisit"},{name:"當月短影音製作",kind:"qtyVideo"},"當月週進度回報"],
+   ["半年內容成果檢核","第二次季度檢核","內容資產整理","內部素材命名與整理帶訓","選題／腳本模板初步帶訓",{name:"當月到場服務",kind:"qtyVisit"},{name:"當月短影音製作",kind:"qtyVideo"},"當月週進度回報"],
+   ["內部人員素材整理實作","選題模板填寫","發布前檢核流程實作","固定場景基礎拍攝帶訓",{name:"當月到場服務",kind:"qtyVisit"},{name:"當月短影音製作",kind:"qtyVideo"},"當月週進度回報"],
+   ["簡易套版剪輯帶訓","素材交接流程測試","發布排程維護實作","內部操作問題整理",{name:"當月到場服務",kind:"qtyVisit"},{name:"當月短影音製作",kind:"qtyVideo"},"當月週進度回報"],
+   ["第三次季度檢核","內部帶訓成熟度檢查","題材與內容比例調整","第四季內容方向確認",{name:"當月到場服務",kind:"qtyVisit"},{name:"當月短影音製作",kind:"qtyVideo"},"當月週進度回報"],
+   ["選題庫整理","素材命名規則整理","腳本模板整理","發布流程整理","教學紀錄整理",{name:"當月到場服務",kind:"qtyVisit"},{name:"當月短影音製作",kind:"qtyVideo"},"當月週進度回報"],
+   ["內部操作流程測試","帳號及權限檢核","素材庫與文件缺口補強","未完成項目盤點","年度資產清單初稿",{name:"當月到場服務",kind:"qtyVisit"},{name:"當月短影音製作",kind:"qtyVideo"},"當月週進度回報"],
+   ["第四次季度檢核","全年 96 支短影音交付檢核","全年 24 次到場服務檢核","年度成果報告","選題庫、素材規則與發布流程交接","教學紀錄與內部能力交接","成品與原始素材交接","第二年合作或自主營運建議","當月週進度回報"]
+  ],
+  recurring:()=>[]
  }
 };
 function getTemplate(slug){return TEMPLATES[slug]||TEMPLATES["dashi-astrology"]}
 let tpl=TEMPLATES["dashi-astrology"];
 function esc(v=""){return v.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function lines(v){return v.split("\n").map(x=>x.trim()).filter(Boolean)}
-function defaultData(slug){const t=getTemplate(slug);return {updated:new Date().toISOString().slice(0,10),currentMonth:0,status:"提案階段｜尚未啟動",weekly:{done:["專案尚未啟動"],wait:["確認合作與正式啟動日"],next:["簽署契約與安排啟動訪談"]},tasks:Object.fromEntries(t.taskNames.flatMap((a,i)=>[...a,...t.recurring(i+1)].map((name,j)=>[`m${i+1}-${j}`,{name,status:"todo",date:"",note:"",links:[]}])))}}
+function taskMeta(entry){return typeof entry==="string"?{name:entry,kind:"checklist"}:{kind:"checklist",...entry}}
+function defaultData(slug){
+ const t=getTemplate(slug);
+ const monthTasks=t.taskNames.flatMap((a,i)=>[...a,...t.recurring(i+1)].map((entry,j)=>[`m${i+1}-${j}`,{name:taskMeta(entry).name,status:"todo",date:"",note:"",qty:0,links:[]}]));
+ const prepTasks=(t.prepTasks||[]).map((entry,j)=>[`prep-${j}`,{name:taskMeta(entry).name,status:"todo",date:"",note:"",qty:0,links:[]}]);
+ return {updated:new Date().toISOString().slice(0,10),currentMonth:0,status:"提案階段｜尚未啟動",weekly:{done:["專案尚未啟動"],wait:["確認合作與正式啟動日"],next:["簽署契約與安排啟動訪談"]},tasks:Object.fromEntries([...prepTasks,...monthTasks])}
+}
 function render(){
  $('#status').value=data.status||"";$('#updated').value=data.updated||"";$('#weekly-done').value=(data.weekly?.done||[]).join("\n");$('#weekly-wait').value=(data.weekly?.wait||[]).join("\n");$('#weekly-next').value=(data.weekly?.next||[]).join("\n");
- $('#current-month').innerHTML=Array.from({length:13},(_,i)=>`<option value="${i}" ${Number(data.currentMonth)===i?'selected':''}>${i===0?'尚未啟動':`第 ${i} 個月`}</option>`).join('');
- $('#months').innerHTML=tpl.taskNames.map((special,i)=>{const m=i+1,names=[...special,...tpl.recurring(m)];return `<details class="month" ${data.currentMonth===m?'open':''}><summary>Month ${String(m).padStart(2,'0')}　${tpl.phaseNames[i]}</summary><div class="month-body">${names.map((fallback,j)=>taskEditor(`m${m}-${j}`,fallback)).join('')}</div></details>`}).join('');
+ const monthOptions=Array.from({length:12},(_,i)=>`<option value="${i+1}" ${data.currentMonth===i+1?'selected':''}>第 ${i+1} 個月</option>`).join('');
+ if(tpl.hasPrep){
+  $('#current-month').innerHTML=`<option value="0" ${data.currentMonth===0?'selected':''}>尚未啟動</option><option value="prep" ${data.currentMonth==='prep'?'selected':''}>準備期進行中</option>${monthOptions}`;
+ }else{
+  $('#current-month').innerHTML=`<option value="0" ${data.currentMonth===0?'selected':''}>尚未啟動</option>${monthOptions}`;
+ }
+ const prepHtml=tpl.prepTasks?`<details class="month" ${data.currentMonth==='prep'?'open':''}><summary>準備期　贈送，不計入 12 個月</summary><div class="month-body">${tpl.prepTasks.map((fallback,j)=>taskEditor(`prep-${j}`,fallback)).join('')}</div></details>`:'';
+ const monthsHtml=tpl.taskNames.map((special,i)=>{const m=i+1,names=[...special,...tpl.recurring(m)];return `<details class="month" ${data.currentMonth===m?'open':''}><summary>Month ${String(m).padStart(2,'0')}　${tpl.phaseNames[i]}</summary><div class="month-body">${names.map((fallback,j)=>taskEditor(`m${m}-${j}`,fallback)).join('')}</div></details>`}).join('');
+ $('#months').innerHTML=prepHtml+monthsHtml;
  document.querySelectorAll('.add-link').forEach(b=>b.onclick=()=>addLink(b.dataset.id));document.querySelectorAll('.remove').forEach(b=>b.onclick=()=>removeLink(b.dataset.id,Number(b.dataset.index)));
 }
-function taskEditor(id,fallback){const t=data.tasks[id]||(data.tasks[id]={name:fallback,status:"todo",date:"",note:"",links:[]});return `<article class="task" data-id="${id}"><div class="task-head"><div><label>工作項目</label><input data-field="name" value="${esc(t.name)}"></div><div><label>狀態</label><select data-field="status"><option value="todo" ${t.status==='todo'?'selected':''}>尚未開始</option><option value="active" ${t.status==='active'?'selected':''}>進行中</option><option value="review" ${t.status==='review'?'selected':''}>等待確認</option><option value="complete" ${t.status==='complete'?'selected':''}>已完成</option></select></div><div><label>完成日期</label><input data-field="date" type="date" value="${esc(t.date)}"></div></div><div style="margin-top:10px"><label>執行說明</label><textarea data-field="note">${esc(t.note)}</textarea></div><div class="links"><label>成果連結（可新增多個）</label>${(t.links||[]).map((l,k)=>`<div class="link-row"><input data-link="label" data-index="${k}" placeholder="按鈕名稱" value="${esc(l.label)}"><input data-link="url" data-index="${k}" placeholder="https://" value="${esc(l.url)}"><input data-link="note" data-index="${k}" placeholder="連結說明（選填）" value="${esc(l.note||'')}"><button class="remove" data-id="${id}" data-index="${k}" type="button">移除</button></div>`).join('')}<button class="add-link" data-id="${id}" type="button">＋ 新增成果連結</button></div></article>`}
-function collect(){data.status=$('#status').value;data.currentMonth=Number($('#current-month').value);data.updated=$('#updated').value;data.weekly={done:lines($('#weekly-done').value),wait:lines($('#weekly-wait').value),next:lines($('#weekly-next').value)};document.querySelectorAll('.task').forEach(el=>{const t=data.tasks[el.dataset.id];el.querySelectorAll('[data-field]').forEach(x=>t[x.dataset.field]=x.value);const rows=[...el.querySelectorAll('.link-row')];t.links=rows.map(row=>({label:row.querySelector('[data-link="label"]').value,url:row.querySelector('[data-link="url"]').value,note:row.querySelector('[data-link="note"]').value})).filter(x=>x.url)});}
+function taskEditor(id,fallback){
+ const meta=taskMeta(fallback);
+ const t=data.tasks[id]||(data.tasks[id]={name:meta.name,status:"todo",date:"",note:"",qty:0,links:[]});
+ const qtyLabel=meta.kind==='qtyVideo'?'本月完成短影音支數':meta.kind==='qtyVisit'?'本月完成到場次數':null;
+ const qtyRow=qtyLabel?`<div style="margin-top:10px;max-width:220px"><label>${qtyLabel}</label><input data-field="qty" type="number" min="0" value="${Number(t.qty)||0}"></div>`:'';
+ return `<article class="task" data-id="${id}"><div class="task-head"><div><label>工作項目</label><input data-field="name" value="${esc(t.name)}"></div><div><label>狀態</label><select data-field="status"><option value="todo" ${t.status==='todo'?'selected':''}>尚未開始</option><option value="active" ${t.status==='active'?'selected':''}>進行中</option><option value="review" ${t.status==='review'?'selected':''}>等待確認</option><option value="complete" ${t.status==='complete'?'selected':''}>已完成</option></select></div><div><label>完成日期</label><input data-field="date" type="date" value="${esc(t.date)}"></div></div>${qtyRow}<div style="margin-top:10px"><label>執行說明</label><textarea data-field="note">${esc(t.note)}</textarea></div><div class="links"><label>成果連結（可新增多個）</label>${(t.links||[]).map((l,k)=>`<div class="link-row"><input data-link="label" data-index="${k}" placeholder="按鈕名稱" value="${esc(l.label)}"><input data-link="url" data-index="${k}" placeholder="https://" value="${esc(l.url)}"><input data-link="note" data-index="${k}" placeholder="連結說明（選填）" value="${esc(l.note||'')}"><button class="remove" data-id="${id}" data-index="${k}" type="button">移除</button></div>`).join('')}<button class="add-link" data-id="${id}" type="button">＋ 新增成果連結</button></div></article>`
+}
+function collect(){
+ data.status=$('#status').value;
+ const cmVal=$('#current-month').value;data.currentMonth=cmVal==='prep'?'prep':Number(cmVal);
+ data.updated=$('#updated').value;data.weekly={done:lines($('#weekly-done').value),wait:lines($('#weekly-wait').value),next:lines($('#weekly-next').value)};
+ document.querySelectorAll('.task').forEach(el=>{const t=data.tasks[el.dataset.id];el.querySelectorAll('[data-field]').forEach(x=>{t[x.dataset.field]=x.dataset.field==='qty'?(Number(x.value)||0):x.value});const rows=[...el.querySelectorAll('.link-row')];t.links=rows.map(row=>({label:row.querySelector('[data-link="label"]').value,url:row.querySelector('[data-link="url"]').value,note:row.querySelector('[data-link="note"]').value})).filter(x=>x.url)});
+}
 function addLink(id){collect();data.tasks[id].links.push({label:"成果連結",url:"",note:""});render();document.querySelector(`[data-id="${id}"]`).scrollIntoView({block:"center"})}
 function removeLink(id,k){collect();data.tasks[id].links.splice(k,1);render()}
 function publicUrl(slug){return `progress.html?project=${encodeURIComponent(slug)}`}
